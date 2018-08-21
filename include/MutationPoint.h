@@ -55,6 +55,7 @@ public:
   }
 
   llvm::Instruction &findInstruction(llvm::Module *module);
+  llvm::Function &findFunction(llvm::Module *module);
 
   static int getFunctionIndex(llvm::Function *function);
   static

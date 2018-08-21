@@ -19,6 +19,11 @@ Instruction &MutationPointAddress::findInstruction(Module *module) {
   return instruction;
 }
 
+Function &MutationPointAddress::findFunction(Module *module) {
+  llvm::Function &function = *(std::next(module->begin(), getFnIndex()));
+  return function;
+}
+
 int MutationPointAddress::getFunctionIndex(Function *function) {
   auto PM = function->getParent();
 

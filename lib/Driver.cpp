@@ -16,6 +16,7 @@
 #include "Parallelization/Parallelization.h"
 
 #include <llvm/Support/DynamicLibrary.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 #include <algorithm>
 #include <fstream>
@@ -23,6 +24,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 
+#include <map>
 
 using namespace llvm;
 using namespace llvm::object;
@@ -216,12 +218,27 @@ Driver::dryRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
 }
 
 std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
+  errs() << mutationPoints.size() << "\n";
+  for (auto &point : mutationPoints) {
+    auto &function = point->getAddress().findFunction(point->getOriginalModule()->getModule());
+//    errs() << function.getParent()->getModuleIdentifier() << "\n";
+//    errs() << function.getParent()->getFunctionList().size() << "\n";
+    ValueToValueMapTy map;
+    auto newF = CloneFunction(&function, map);
+    newF->setName(point->getUniqueIdentifier());
+    newF->setLinkage(GlobalValue::ExternalLinkage);
+//    errs() << newF->getParent()->getModuleIdentifier() << "\n";
+//    errs() << newF->getParent()->getFunctionList().size() << "\n";
+  }
+
   std::vector<OriginalCompilationTask> compilationTasks;
-  for (int i = 0; i < config.parallelization().workers; i++) {
+  for (int i = 0; i < 4; i++) {
     compilationTasks.emplace_back(toolchain);
   }
   TaskExecutor<OriginalCompilationTask> mutantCompiler("Compiling original code", context.getModules(), ownedObjectFiles, std::move(compilationTasks));
   mutantCompiler.execute();
+
+  exit(148);
 
   for (size_t i = 0; i < ownedObjectFiles.size(); i++) {
     auto &module = context.getModules().at(i);
