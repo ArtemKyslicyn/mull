@@ -220,14 +220,12 @@ Driver::dryRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
 std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
   errs() << mutationPoints.size() << "\n";
 
-  std::map<MullModule *, std::vector<MutationPoint *>> moduleBuckets;
-
-  for (auto point: mutationPoints) {
-    point->getOriginalModule()->prepareMutation(point);
+  for (auto &module : context.getModules()) {
+    module->prepareMutations();
   }
 
   std::vector<OriginalCompilationTask> compilationTasks;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 8; i++) {
     compilationTasks.emplace_back(toolchain);
   }
   TaskExecutor<OriginalCompilationTask> mutantCompiler("Compiling original code", context.getModules(), ownedObjectFiles, std::move(compilationTasks));
@@ -238,6 +236,8 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
     auto &objectFile = ownedObjectFiles.at(i);
     innerCache.insert(std::make_pair(module->getModule(), objectFile.getBinary()));
   }
+
+  exit(114);
 
   std::vector<std::unique_ptr<MutationResult>> mutationResults;
 

@@ -92,6 +92,7 @@ public:
   MullModule *getOriginalModule();
 
   llvm::Function *getFunction();
+  void setFunction(llvm::Function *function);
 
   Mutator *getMutator() const;
   MutationPointAddress getAddress() const;

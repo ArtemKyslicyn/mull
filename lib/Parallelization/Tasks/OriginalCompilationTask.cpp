@@ -29,7 +29,7 @@ void mull::OriginalCompilationTask::operator()(mull::OriginalCompilationTask::it
 //    auto objectFile = toolchain.cache().getObject(module);
 //    if (objectFile.getBinary() == nullptr) {
       auto objectFile = toolchain.compiler().compileModule(module, *localMachine);
-//      toolchain.cache().putObject(objectFile, module);
+      toolchain.cache().putObject(objectFile, module);
 //    }
 
     storage.push_back(std::move(objectFile));

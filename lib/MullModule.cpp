@@ -64,8 +64,23 @@ std::string MullModule::getUniqueIdentifier() const {
   return uniqueIdentifier;
 }
 
-void MullModule::prepareMutation(MutationPoint *point) {
-  auto function = point->getFunction();
+void MullModule::prepareMutations() {
+
+  for (auto pair : mutationPoints) {
+    auto original = pair.first;
+    for (auto point : pair.second) {
+      ValueToValueMapTy map;
+      auto mutatedFunction = CloneFunction(original, map);
+      mutatedFunction->setName(point->getUniqueIdentifier());
+      point->setFunction(mutatedFunction);
+    }
+    ValueToValueMapTy map;
+    auto originalCopy = CloneFunction(original, map);
+    remappedFunctions[original->getName()] = originalCopy;
+    original->deleteBody();
+  }
+
+//  auto function = point->getFunction();
 //  Function *original = &function;
 //  if (original->isDeclaration()) {
 //    original = remappedFunctions[original->getName()];
@@ -81,5 +96,11 @@ void MullModule::prepareMutation(MutationPoint *point) {
 //  auto copy = CloneFunction(original, map);
 //  copy->setName(point->getUniqueIdentifier());
 //  copy->setLinkage(GlobalValue::ExternalLinkage);
+}
+
+void MullModule::addMutation(MutationPoint *point) {
+  std::lock_guard<std::mutex> guard(mutex);
+  auto function = point->getFunction();
+  mutationPoints[function].push_back(point);
 }
 

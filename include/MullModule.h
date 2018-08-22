@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <string>
+#include <thread>
 
 #include <llvm/IR/Module.h>
 
@@ -16,8 +17,12 @@ class MutationPoint;
     std::unique_ptr<llvm::Module> module;
     std::string uniqueIdentifier;
     std::string modulePath;
-    MullModule(std::unique_ptr<llvm::Module> llvmModule);
+
     std::map<std::string, llvm::Function *> remappedFunctions;
+    std::map<llvm::Function *, std::vector<MutationPoint *>> mutationPoints;
+    std::mutex mutex;
+
+    MullModule(std::unique_ptr<llvm::Module> llvmModule);
   public:
     MullModule(std::unique_ptr<llvm::Module> llvmModule,
                const std::string &md5,
@@ -30,7 +35,8 @@ class MutationPoint;
     std::string getUniqueIdentifier();
     std::string getUniqueIdentifier() const;
 
-    void prepareMutation(MutationPoint *point);
+    void prepareMutations();
+    void addMutation(MutationPoint *point);
   };
 
 }

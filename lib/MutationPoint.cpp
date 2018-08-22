@@ -145,3 +145,7 @@ const SourceLocation &MutationPoint::getSourceLocation() const {
 Function *MutationPoint::getFunction() {
   return function;
 }
+
+void MutationPoint::setFunction(llvm::Function *function) {
+  this->function = function;
+}
