@@ -139,9 +139,9 @@ bool MathAddMutator::canBeApplied(Value &V) {
 }
 
 llvm::Value *
-MathAddMutator::applyMutation(llvm::Module *module,
+MathAddMutator::applyMutation(Function *function,
                               MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   if (isAddWithOverflow(I)) {
     CallInst *callInst = dyn_cast<CallInst>(&I);

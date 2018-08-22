@@ -75,7 +75,7 @@ TEST(MutationPoint, SimpleTest_AddOperator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedModule.get());
+  MP->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("count_letters");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -123,7 +123,7 @@ TEST(MutationPoint, SimpleTest_MathSubOperator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedModule.get());
+  MP->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("math_sub");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -172,7 +172,7 @@ TEST(MutationPoint, SimpleTest_MathMulOperator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedModule.get());
+  MP->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("math_mul");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -223,7 +223,7 @@ TEST(MutationPoint, SimpleTest_MathDivOperator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedModule.get());
+  MP->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("math_div");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -274,7 +274,7 @@ TEST(MutationPoint, SimpleTest_NegateConditionOperator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedModule.get());
+  MP->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("max");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -325,7 +325,7 @@ TEST(MutationPoint, SimpleTest_AndOrMutator_applyMutation) {
 
     LLVMContext localContext;
     auto ownedMutatedModule = mutationPoint->getOriginalModule()->clone(localContext);
-    mutationPoint->applyMutation(*ownedMutatedModule.get());
+    mutationPoint->applyMutation();
 
     Function *mutatedTesteeFunction = ownedMutatedModule->getModule()->getFunction("testee_AND_operator_2branches");
     ASSERT_TRUE(mutatedTesteeFunction != nullptr);
@@ -379,7 +379,7 @@ TEST(MutationPoint, SimpleTest_ScalarValueMutator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = mutationPoint1->getOriginalModule()->clone(localContext);
-  mutationPoint1->applyMutation(*ownedMutatedModule);
+  mutationPoint1->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("scalar_value");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -426,7 +426,7 @@ TEST(MutationPoint, SimpleTest_ReplaceCallMutator_applyMutation) {
 
   LLVMContext localContext;
   auto ownedMutatedModule = mutationPoint1->getOriginalModule()->clone(localContext);
-  mutationPoint1->applyMutation(*ownedMutatedModule);
+  mutationPoint1->applyMutation();
 
   Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("replace_call");
   ASSERT_TRUE(mutatedTestee != nullptr);
@@ -467,7 +467,7 @@ TEST(MutationPoint, SimpleTest_ReplaceAssignmentMutator_applyMutation) {
 
     LLVMContext localContext;
     auto ownedMutatedModule = mutationPoint1->getOriginalModule()->clone(localContext);
-    mutationPoint1->applyMutation(*ownedMutatedModule.get());
+  mutationPoint1->applyMutation();
 
     Function *mutatedTestee = ownedMutatedModule->getModule()->getFunction("replace_assignment");
     ASSERT_TRUE(mutatedTestee != nullptr);

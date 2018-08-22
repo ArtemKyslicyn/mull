@@ -70,7 +70,7 @@ TEST(ConditionalsBoundaryMutator, applyMutations) {
 
   for (auto point: points) {
     Instruction *originalInstruction = &point->getAddress().findInstruction(module);
-    point->applyMutation(*mutatedModule);
+    point->applyMutation();
     Instruction *mutatedInstruction = &point->getAddress().findInstruction(mutatedModule->getModule());
 
     if (ConditionalsBoundaryMutator::isGT(originalInstruction)) {

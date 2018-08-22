@@ -55,6 +55,7 @@ public:
   }
 
   llvm::Instruction &findInstruction(llvm::Module *module);
+  llvm::Instruction &findInstruction(llvm::Function *function);
   llvm::Function &findFunction(llvm::Module *module);
 
   static int getFunctionIndex(llvm::Function *function);
@@ -101,7 +102,7 @@ public:
   const SourceLocation &getSourceLocation() const;
 
   void addReachableTest(Test *test, int distance);
-  void applyMutation(MullModule &module);
+  void applyMutation();
 
   const std::vector<std::pair<Test *, int>> &getReachableTests() const;
 

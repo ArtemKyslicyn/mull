@@ -40,7 +40,7 @@ public:
 
   virtual bool canBeApplied(llvm::Value &V) = 0;
   virtual llvm::Value *
-  applyMutation(llvm::Module *module, MutationPointAddress &address) = 0;
+  applyMutation(llvm::Function *function, MutationPointAddress &address) = 0;
   virtual ~Mutator() = default;
 };
 

@@ -36,7 +36,7 @@ void MutantExecutionTask::operator()(MutantExecutionTask::iterator begin,
     if (mutant.getBinary() == nullptr) {
       LLVMContext localContext;
       auto clonedModule = mutationPoint->getOriginalModule()->clone(localContext);
-      mutationPoint->applyMutation(*clonedModule.get());
+      mutationPoint->applyMutation();
       mutant = toolchain.compiler().compileModule(*clonedModule.get(), *localMachine);
       toolchain.cache().putObject(mutant, *mutationPoint);
     }

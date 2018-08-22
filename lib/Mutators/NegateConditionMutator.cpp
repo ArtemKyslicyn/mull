@@ -317,9 +317,9 @@ bool NegateConditionMutator::canBeApplied(Value &V) {
   return false;
 }
 
-llvm::Value *NegateConditionMutator::applyMutation(llvm::Module *module,
+llvm::Value *NegateConditionMutator::applyMutation(Function *function,
                                                    MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   CmpInst *cmpInstruction = cast<CmpInst>(&I);
 

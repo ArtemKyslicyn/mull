@@ -240,9 +240,9 @@ bool ConditionalsBoundaryMutator::canBeApplied(Value &V) {
   return false;
 }
 
-llvm::Value *ConditionalsBoundaryMutator::applyMutation(llvm::Module *module,
+llvm::Value *ConditionalsBoundaryMutator::applyMutation(Function *function,
                                                         MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   CmpInst *cmp = cast<CmpInst>(&I);
 

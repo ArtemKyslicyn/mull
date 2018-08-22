@@ -135,9 +135,9 @@ bool MathSubMutator::canBeApplied(Value &V) {
   return false;
 }
 
-llvm::Value *MathSubMutator::applyMutation(llvm::Module *module,
+llvm::Value *MathSubMutator::applyMutation(Function *function,
                                            MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   if (isSubWithOverflow(I)) {
     CallInst *callInst = dyn_cast<CallInst>(&I);

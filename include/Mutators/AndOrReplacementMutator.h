@@ -36,35 +36,23 @@ namespace mull {
                                                      BranchInst **secondBranchInst);
 
     // AND -> OR
-    llvm::Value *applyMutationANDToOR_Pattern1(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
-    llvm::Value *applyMutationANDToOR_Pattern2(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
-    llvm::Value *applyMutationANDToOR_Pattern3(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
+    llvm::Value *applyMutationANDToOR_Pattern1(BranchInst *firstBranch, BranchInst *secondBranch);
+    llvm::Value *applyMutationANDToOR_Pattern2(BranchInst *firstBranch, BranchInst *secondBranch);
+    llvm::Value *applyMutationANDToOR_Pattern3(BranchInst *firstBranch, BranchInst *secondBranch);
 
     // OR -> AND
-    llvm::Value *applyMutationORToAND_Pattern1(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
-    llvm::Value *applyMutationORToAND_Pattern2(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
-    llvm::Value *applyMutationORToAND_Pattern3(Module *M,
-                                               BranchInst *firstBranch,
-                                               BranchInst *secondBranch);
+    llvm::Value *applyMutationORToAND_Pattern1(BranchInst *firstBranch, BranchInst *secondBranch);
+    llvm::Value *applyMutationORToAND_Pattern2(BranchInst *firstBranch, BranchInst *secondBranch);
+    llvm::Value *applyMutationORToAND_Pattern3(BranchInst *firstBranch, BranchInst *secondBranch);
 
   public:
     static const std::string ID;
 
     MutationPoint *getMutationPoint(MullModule *module,
-                                        llvm::Function *function,
-                                        llvm::Instruction *instruction,
-                                        SourceLocation &sourceLocation,
-                                        MutationPointAddress &address) override;
+                                    llvm::Function *function,
+                                    llvm::Instruction *instruction,
+                                    SourceLocation &sourceLocation,
+                                    MutationPointAddress &address) override;
 
     std::string getUniqueIdentifier() override {
       return ID;
@@ -75,6 +63,6 @@ namespace mull {
 
     bool canBeApplied(llvm::Value &V) override;
     llvm::Value *
-    applyMutation(llvm::Module *module, MutationPointAddress &address) override;
+    applyMutation(Function *function, MutationPointAddress &address) override;
   };
 }

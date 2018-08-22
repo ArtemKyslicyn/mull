@@ -57,6 +57,13 @@ MutationPointAddress::enumerateInstructions(
   }
 }
 
+llvm::Instruction &MutationPointAddress::findInstruction(llvm::Function *function) {
+  llvm::BasicBlock &bb = *(std::next(function->begin(), getBBIndex()));
+  llvm::Instruction &instruction = *(std::next(bb.begin(), getIIndex()));
+
+  return instruction;
+}
+
 #pragma mark - MutationPoint
 
 MutationPoint::MutationPoint(Mutator *mutator,
@@ -114,8 +121,8 @@ void MutationPoint::addReachableTest(Test *test, int distance) {
   reachableTests.push_back(make_pair(test, distance));
 }
 
-void MutationPoint::applyMutation(MullModule &module) {
-  mutator->applyMutation(module.getModule(), Address);
+void MutationPoint::applyMutation() {
+  mutator->applyMutation(function, Address);
 }
 
 const std::vector<std::pair<Test *, int>> &MutationPoint::getReachableTests() const {

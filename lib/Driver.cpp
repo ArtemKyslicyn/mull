@@ -224,6 +224,14 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
     module->prepareMutations();
   }
 
+  std::vector<ApplyMutationTask> applyMutationTasks;
+  for (int i = 0; i < 8; i++) {
+    applyMutationTasks.emplace_back();
+  }
+  std::vector<int> empty;
+  TaskExecutor<ApplyMutationTask> applyMutations("Applying mutations", mutationPoints, empty, std::move(applyMutationTasks));
+  applyMutations.execute();
+
   std::vector<OriginalCompilationTask> compilationTasks;
   for (int i = 0; i < 8; i++) {
     compilationTasks.emplace_back(toolchain);

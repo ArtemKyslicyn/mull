@@ -46,9 +46,9 @@ bool MathDivMutator::canBeApplied(Value &V) {
   return false;
 }
 
-llvm::Value *MathDivMutator::applyMutation(llvm::Module *module,
+llvm::Value *MathDivMutator::applyMutation(Function *function,
                                            MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   /// TODO: Take care of NUW/NSW
   BinaryOperator *binaryOperator = cast<BinaryOperator>(&I);

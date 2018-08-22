@@ -92,9 +92,9 @@ bool RemoveVoidFunctionMutator::canBeApplied(Value &V) {
   return false;
 }
 
-llvm::Value *RemoveVoidFunctionMutator::applyMutation(llvm::Module *module,
+llvm::Value *RemoveVoidFunctionMutator::applyMutation(Function *function,
                                                       MutationPointAddress &address) {
-  llvm::Instruction &I = address.findInstruction(module);
+  llvm::Instruction &I = address.findInstruction(function);
 
   CallInst *callInst = dyn_cast<CallInst>(&I);
   callInst->eraseFromParent();

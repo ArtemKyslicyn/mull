@@ -78,24 +78,20 @@ void MullModule::prepareMutations() {
     auto originalCopy = CloneFunction(original, map);
     remappedFunctions[original->getName()] = originalCopy;
     original->deleteBody();
-  }
 
-//  auto function = point->getFunction();
-//  Function *original = &function;
-//  if (original->isDeclaration()) {
-//    original = remappedFunctions[original->getName()];
-//  } else {
-//    ValueToValueMapTy map;
-//    auto copy = CloneFunction(original, map);
-//    remappedFunctions[original->getName()] = copy;
-//    original->deleteBody();
-//    original = copy;
-//  }
-//
-//  ValueToValueMapTy map;
-//  auto copy = CloneFunction(original, map);
-//  copy->setName(point->getUniqueIdentifier());
-//  copy->setLinkage(GlobalValue::ExternalLinkage);
+    std::vector<Value *> args;
+    for (unsigned i = 0; i < original->getNumOperands(); i++) {
+      auto arg = original->getOperand(i);
+      args.push_back(arg);
+    }
+
+    auto name = original->getName().str() + "_trampoline";
+    auto trampoline = module->getOrInsertGlobal(name, original->getFunctionType()->getPointerTo());
+    BasicBlock *block = BasicBlock::Create(module->getContext(), "indirect_call", original);
+    auto loadValue = new LoadInst(trampoline, "indirect_function_pointer", block);
+    auto callInst = CallInst::Create(loadValue, args, "indirect_function_call", block);
+    ReturnInst::Create(module->getContext(), callInst, block);
+  }
 }
 
 void MullModule::addMutation(MutationPoint *point) {
@@ -103,4 +99,3 @@ void MullModule::addMutation(MutationPoint *point) {
   auto function = point->getFunction();
   mutationPoints[function].push_back(point);
 }
-

@@ -100,7 +100,7 @@ TEST(SimpleTestRunner, runTest) {
 
   LLVMContext localContext;
   auto ownedMutatedTesteeModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation(*ownedMutatedTesteeModule);
+  MP->applyMutation();
 
   {
     auto Obj = compiler.compileModule(ModuleWithTests, *targetMachine);

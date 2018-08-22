@@ -113,9 +113,9 @@ llvm::Value *getReplacement(Type *returnType, llvm::LLVMContext &context) {
 }
 
 llvm::Value *
-ReplaceCallMutator::applyMutation(llvm::Module *module,
+ReplaceCallMutator::applyMutation(Function *function,
                                   MutationPointAddress &address) {
-  llvm::Instruction &instruction = address.findInstruction(module);
+  llvm::Instruction &instruction = address.findInstruction(function);
 
   CallSite callSite(&instruction);
 
