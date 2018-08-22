@@ -12,13 +12,13 @@ class LLVMContext;
 namespace mull {
 
 class MutationPoint;
+class JITEngine;
 
   class MullModule {
     std::unique_ptr<llvm::Module> module;
     std::string uniqueIdentifier;
     std::string modulePath;
 
-    std::map<std::string, llvm::Function *> remappedFunctions;
     std::map<llvm::Function *, std::vector<MutationPoint *>> mutationPoints;
     std::mutex mutex;
 
@@ -35,7 +35,7 @@ class MutationPoint;
     std::string getUniqueIdentifier();
     std::string getUniqueIdentifier() const;
 
-    void prepareMutations();
+    std::vector<std::string> prepareMutations();
     void addMutation(MutationPoint *point);
   };
 

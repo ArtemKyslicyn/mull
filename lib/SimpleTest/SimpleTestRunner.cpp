@@ -3,6 +3,7 @@
 
 #include "Toolchain/Resolvers/InstrumentationResolver.h"
 #include "Toolchain/Resolvers/NativeResolver.h"
+#include "Toolchain/Resolvers/MutationResolver.h"
 #include "Mangler.h"
 
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
@@ -43,8 +44,9 @@ void SimpleTestRunner::loadInstrumentedProgram(ObjectFiles &objectFiles,
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
 }
 
-void SimpleTestRunner::loadProgram(ObjectFiles &objectFiles, JITEngine &jit) {
-  NativeResolver resolver(overrides);
+void SimpleTestRunner::loadMutatedProgram(ObjectFiles &objectFiles, std::map<std::string, uint64_t *> &trampolines,
+                                          JITEngine &jit) {
+  MutationResolver resolver(overrides, trampolines);
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
 }
 

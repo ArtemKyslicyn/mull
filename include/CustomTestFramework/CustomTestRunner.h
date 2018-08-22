@@ -32,7 +32,7 @@ public:
   void loadInstrumentedProgram(ObjectFiles &objectFiles,
                                Instrumentation &instrumentation,
                                JITEngine &jit) override;
-  void loadProgram(ObjectFiles &objectFiles, JITEngine &jit) override;
+  void loadMutatedProgram(ObjectFiles &objectFiles, std::map<std::string, uint64_t *> &trampolines, JITEngine &jit) override;
   ExecutionStatus runTest(Test *test, JITEngine &jit) override;
 
 private:

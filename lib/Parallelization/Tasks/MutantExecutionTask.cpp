@@ -10,40 +10,39 @@
 using namespace mull;
 using namespace llvm;
 
-mull::MutantExecutionTask::MutantExecutionTask(Driver &driver,
-                                               ProcessSandbox &sandbox,
-                                               TestRunner &runner,
-                                               Config &config,
-                                               Toolchain &toolchain,
-                                               Filter &filter)
-    : sandbox(sandbox), runner(runner),
-      config(config), toolchain(toolchain), filter(filter), driver(driver) {}
+MutantExecutionTask::MutantExecutionTask(ProcessSandbox &sandbox,
+                                         TestRunner &runner,
+                                         Config &config,
+                                         Filter &filter,
+                                         std::vector<llvm::object::ObjectFile *> &objectFiles,
+                                         std::vector<std::string> &mutatedFunctionNames)
+    : sandbox(sandbox), runner(runner), config(config),
+      filter(filter), objectFiles(objectFiles), mutatedFunctionNames(mutatedFunctionNames) {}
 
-void MutantExecutionTask::operator()(MutantExecutionTask::iterator begin,
-                                     MutantExecutionTask::iterator end,
-                                     MutantExecutionTask::Out &storage,
-                                     progress_counter &counter) {
-  EngineBuilder builder;
-  auto target = builder.selectTarget(llvm::Triple(), "", "",
-                                     llvm::SmallVector<std::string, 1>());
-  std::unique_ptr<TargetMachine> localMachine(target);
+void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage, progress_counter &counter) {
+  std::map<std::string, uint64_t *> trampolines;
+  for (auto &name: mutatedFunctionNames) {
+    auto trampolineName = std::string("_") + name + "_trampoline";
+    trampolines.insert(std::make_pair(trampolineName, new uint64_t));
+  }
+
+  runner.loadMutatedProgram(objectFiles, trampolines, jit);
+
+  for (auto &name: mutatedFunctionNames) {
+    auto trampolineName = std::string("_") + name + "_trampoline";
+    auto originalName = std::string("_") + name + "_original";
+    uint64_t *trampoline = trampolines.at(trampolineName);
+    *trampoline = llvm_compat::JITSymbolAddress(jit.getSymbol(originalName));
+  }
 
   for (auto it = begin; it != end; ++it, counter.increment()) {
     auto mutationPoint = *it;
-    auto objectFilesWithMutant = driver.AllButOne(mutationPoint->getOriginalModule()->getModule());
 
-    auto mutant = toolchain.cache().getObject(*mutationPoint);
-    if (mutant.getBinary() == nullptr) {
-      LLVMContext localContext;
-      auto clonedModule = mutationPoint->getOriginalModule()->clone(localContext);
-      mutationPoint->applyMutation();
-      mutant = toolchain.compiler().compileModule(*clonedModule.get(), *localMachine);
-      toolchain.cache().putObject(mutant, *mutationPoint);
-    }
-
-    objectFilesWithMutant.push_back(mutant.getBinary());
-
-    runner.loadProgram(objectFilesWithMutant, jit);
+    auto name = mutationPoint->getOriginalFunction()->getName().str();
+    auto trampolineName = std::string("_") + name + "_trampoline";
+    auto mutatedFunctionName = std::string("_") + mutationPoint->getUniqueIdentifier();
+    uint64_t *trampoline = trampolines.at(trampolineName);
+    uint64_t address = llvm_compat::JITSymbolAddress(jit.getSymbol(mutatedFunctionName));
 
     auto atLeastOneTestFailed = false;
     for (auto &reachableTest : mutationPoint->getReachableTests()) {
@@ -58,6 +57,7 @@ void MutantExecutionTask::operator()(MutantExecutionTask::iterator begin,
         const auto sandboxTimeout = std::max(30LL, timeout);
 
         result = sandbox.run([&]() {
+          *trampoline = address;
           ExecutionStatus status = runner.runTest(test, jit);
           assert(status != ExecutionStatus::Invalid && "Expect to see valid TestResult");
           return status;

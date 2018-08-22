@@ -74,7 +74,8 @@ MutationPoint::MutationPoint(Mutator *mutator,
                              const SourceLocation &location,
                              MullModule *m) :
   mutator(mutator), Address(Address), OriginalValue(Val), module(m),
-  function(function), diagnostics(diagnostics), sourceLocation(location), reachableTests()
+  originalFunction(function), mutatedFunction(nullptr), diagnostics(diagnostics),
+  sourceLocation(location), reachableTests()
 {
   string moduleID = module->getUniqueIdentifier();
   string addressID = Address.getIdentifier();
@@ -118,11 +119,11 @@ MullModule *MutationPoint::getOriginalModule() const {
 }
 
 void MutationPoint::addReachableTest(Test *test, int distance) {
-  reachableTests.push_back(make_pair(test, distance));
+  reachableTests.emplace_back(test, distance);
 }
 
 void MutationPoint::applyMutation() {
-  mutator->applyMutation(function, Address);
+  mutator->applyMutation(mutatedFunction, Address);
 }
 
 const std::vector<std::pair<Test *, int>> &MutationPoint::getReachableTests() const {
@@ -149,10 +150,10 @@ const SourceLocation &MutationPoint::getSourceLocation() const {
   return sourceLocation;
 }
 
-Function *MutationPoint::getFunction() {
-  return function;
+Function *MutationPoint::getOriginalFunction() {
+  return originalFunction;
 }
 
-void MutationPoint::setFunction(llvm::Function *function) {
-  this->function = function;
+void MutationPoint::setMutatedFunction(llvm::Function *function) {
+  this->mutatedFunction = function;
 }
