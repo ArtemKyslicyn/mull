@@ -219,16 +219,11 @@ Driver::dryRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
 
 std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const std::vector<MutationPoint *> &mutationPoints) {
   errs() << mutationPoints.size() << "\n";
-  for (auto &point : mutationPoints) {
-    auto &function = point->getAddress().findFunction(point->getOriginalModule()->getModule());
-//    errs() << function.getParent()->getModuleIdentifier() << "\n";
-//    errs() << function.getParent()->getFunctionList().size() << "\n";
-    ValueToValueMapTy map;
-    auto newF = CloneFunction(&function, map);
-    newF->setName(point->getUniqueIdentifier());
-    newF->setLinkage(GlobalValue::ExternalLinkage);
-//    errs() << newF->getParent()->getModuleIdentifier() << "\n";
-//    errs() << newF->getParent()->getFunctionList().size() << "\n";
+
+  std::map<MullModule *, std::vector<MutationPoint *>> moduleBuckets;
+
+  for (auto point: mutationPoints) {
+    point->getOriginalModule()->prepareMutation(point);
   }
 
   std::vector<OriginalCompilationTask> compilationTasks;
@@ -237,8 +232,6 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   }
   TaskExecutor<OriginalCompilationTask> mutantCompiler("Compiling original code", context.getModules(), ownedObjectFiles, std::move(compilationTasks));
   mutantCompiler.execute();
-
-  exit(148);
 
   for (size_t i = 0; i < ownedObjectFiles.size(); i++) {
     auto &module = context.getModules().at(i);

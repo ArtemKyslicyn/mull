@@ -10,11 +10,14 @@ class LLVMContext;
 
 namespace mull {
 
+class MutationPoint;
+
   class MullModule {
     std::unique_ptr<llvm::Module> module;
     std::string uniqueIdentifier;
     std::string modulePath;
     MullModule(std::unique_ptr<llvm::Module> llvmModule);
+    std::map<std::string, llvm::Function *> remappedFunctions;
   public:
     MullModule(std::unique_ptr<llvm::Module> llvmModule,
                const std::string &md5,
@@ -22,23 +25,12 @@ namespace mull {
 
     std::unique_ptr<MullModule> clone(llvm::LLVMContext &context);
 
-    llvm::Module *getModule() {
-      assert(module.get());
-      return module.get();
-    }
+    llvm::Module *getModule();
+    llvm::Module *getModule() const;
+    std::string getUniqueIdentifier();
+    std::string getUniqueIdentifier() const;
 
-    llvm::Module *getModule() const {
-      assert(module.get());
-      return module.get();
-    }
-
-    std::string getUniqueIdentifier() {
-      return uniqueIdentifier;
-    }
-
-    std::string getUniqueIdentifier() const {
-      return uniqueIdentifier;
-    }
+    void prepareMutation(MutationPoint *point);
   };
 
 }

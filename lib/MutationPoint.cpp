@@ -140,3 +140,7 @@ const std::string &MutationPoint::getDiagnostics() const {
 const SourceLocation &MutationPoint::getSourceLocation() const {
   return sourceLocation;
 }
+
+llvm::Function &MutationPoint::getFunction() {
+  return Address.findFunction(module->getModule());
+}

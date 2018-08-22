@@ -89,6 +89,8 @@ public:
   llvm::Value *getOriginalValue();
   MullModule *getOriginalModule();
 
+  llvm::Function &getFunction();
+
   Mutator *getMutator() const;
   MutationPointAddress getAddress() const;
   llvm::Value *getOriginalValue() const;

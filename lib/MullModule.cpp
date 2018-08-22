@@ -1,12 +1,14 @@
 #include "MullModule.h"
 #include "Logger.h"
 #include "LLVMCompatibility.h"
+#include "MutationPoint.h"
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/Path.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 using namespace mull;
 using namespace llvm;
@@ -43,3 +45,41 @@ std::unique_ptr<MullModule> MullModule::clone(LLVMContext &context) {
   auto module = make_unique<MullModule>(std::move(llvmModule.get()), "", modulePath);
   return module;
 }
+
+llvm::Module *MullModule::getModule() {
+  assert(module.get());
+  return module.get();
+}
+
+llvm::Module *MullModule::getModule() const {
+  assert(module.get());
+  return module.get();
+}
+
+std::string MullModule::getUniqueIdentifier() {
+  return uniqueIdentifier;
+}
+
+std::string MullModule::getUniqueIdentifier() const {
+  return uniqueIdentifier;
+}
+
+void MullModule::prepareMutation(MutationPoint *point) {
+  auto &function = point->getFunction();
+  Function *original = &function;
+  if (original->isDeclaration()) {
+    original = remappedFunctions[original->getName()];
+  } else {
+    ValueToValueMapTy map;
+    auto copy = CloneFunction(original, map);
+    remappedFunctions[original->getName()] = copy;
+    original->deleteBody();
+    original = copy;
+  }
+
+  ValueToValueMapTy map;
+  auto copy = CloneFunction(original, map);
+  copy->setName(point->getUniqueIdentifier());
+  copy->setLinkage(GlobalValue::ExternalLinkage);
+}
+
