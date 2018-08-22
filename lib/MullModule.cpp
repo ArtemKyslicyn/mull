@@ -65,21 +65,21 @@ std::string MullModule::getUniqueIdentifier() const {
 }
 
 void MullModule::prepareMutation(MutationPoint *point) {
-  auto &function = point->getFunction();
-  Function *original = &function;
-  if (original->isDeclaration()) {
-    original = remappedFunctions[original->getName()];
-  } else {
-    ValueToValueMapTy map;
-    auto copy = CloneFunction(original, map);
-    remappedFunctions[original->getName()] = copy;
-    original->deleteBody();
-    original = copy;
-  }
-
-  ValueToValueMapTy map;
-  auto copy = CloneFunction(original, map);
-  copy->setName(point->getUniqueIdentifier());
-  copy->setLinkage(GlobalValue::ExternalLinkage);
+  auto function = point->getFunction();
+//  Function *original = &function;
+//  if (original->isDeclaration()) {
+//    original = remappedFunctions[original->getName()];
+//  } else {
+//    ValueToValueMapTy map;
+//    auto copy = CloneFunction(original, map);
+//    remappedFunctions[original->getName()] = copy;
+//    original->deleteBody();
+//    original = copy;
+//  }
+//
+//  ValueToValueMapTy map;
+//  auto copy = CloneFunction(original, map);
+//  copy->setName(point->getUniqueIdentifier());
+//  copy->setLinkage(GlobalValue::ExternalLinkage);
 }
 

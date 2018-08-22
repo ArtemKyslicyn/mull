@@ -22,12 +22,13 @@ const std::string AndOrReplacementMutator::ID = "and_or_replacement_mutator";
 
 MutationPoint *
 AndOrReplacementMutator::getMutationPoint(MullModule *module,
-                                          MutationPointAddress &address,
+                                          llvm::Function *function,
                                           llvm::Instruction *instruction,
-                                          SourceLocation &sourceLocation) {
+                                          SourceLocation &sourceLocation,
+                                          MutationPointAddress &address) {
   if (canBeApplied(*instruction)) {
     std::string diagnostics = "AND-OR Replacement";
-    return new MutationPoint(this, address, instruction, module, diagnostics, sourceLocation);
+    return new MutationPoint(this, address, instruction, function, diagnostics, sourceLocation, module);
   }
   return nullptr;
 }

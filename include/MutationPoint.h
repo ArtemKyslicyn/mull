@@ -70,6 +70,7 @@ class MutationPoint {
   MutationPointAddress Address;
   llvm::Value *OriginalValue;
   MullModule *module;
+  llvm::Function *function;
   std::string uniqueIdentifier;
   std::string diagnostics;
   const SourceLocation sourceLocation;
@@ -78,9 +79,10 @@ public:
   MutationPoint(Mutator *mutator,
                 MutationPointAddress Address,
                 llvm::Value *Val,
-                MullModule *m,
+                llvm::Function *function,
                 std::string diagnostics,
-                const SourceLocation &location);
+                const SourceLocation &location,
+                MullModule *m);
 
   ~MutationPoint();
 
@@ -89,7 +91,7 @@ public:
   llvm::Value *getOriginalValue();
   MullModule *getOriginalModule();
 
-  llvm::Function &getFunction();
+  llvm::Function *getFunction();
 
   Mutator *getMutator() const;
   MutationPointAddress getAddress() const;

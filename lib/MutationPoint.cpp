@@ -61,12 +61,13 @@ MutationPointAddress::enumerateInstructions(
 
 MutationPoint::MutationPoint(Mutator *mutator,
                              MutationPointAddress Address,
-                             Value *Val,
-                             MullModule *m,
+                             llvm::Value *Val,
+                             llvm::Function *function,
                              std::string diagnostics,
-                             const SourceLocation &location) :
-  mutator(mutator), Address(Address), OriginalValue(Val),
-  module(m), diagnostics(diagnostics), sourceLocation(location), reachableTests()
+                             const SourceLocation &location,
+                             MullModule *m) :
+  mutator(mutator), Address(Address), OriginalValue(Val), module(m),
+  function(function), diagnostics(diagnostics), sourceLocation(location), reachableTests()
 {
   string moduleID = module->getUniqueIdentifier();
   string addressID = Address.getIdentifier();
@@ -141,6 +142,6 @@ const SourceLocation &MutationPoint::getSourceLocation() const {
   return sourceLocation;
 }
 
-llvm::Function &MutationPoint::getFunction() {
-  return Address.findFunction(module->getModule());
+Function *MutationPoint::getFunction() {
+  return function;
 }

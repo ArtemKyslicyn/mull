@@ -38,9 +38,10 @@ static ConstantFP *getReplacementFloat(ConstantFP *constantFloat);
 
 MutationPoint *
 ScalarValueMutator::getMutationPoint(MullModule *module,
-                                     MutationPointAddress &address,
+                                     llvm::Function *function,
                                      llvm::Instruction *instruction,
-                                     SourceLocation &sourceLocation) {
+                                     SourceLocation &sourceLocation,
+                                     MutationPointAddress &address) {
   std::string diagnostics;
   ScalarValueMutationType mutationType =
     findPossibleApplication(*instruction, diagnostics);
@@ -48,7 +49,7 @@ ScalarValueMutator::getMutationPoint(MullModule *module,
     return nullptr;
   }
 
-  return new MutationPoint(this, address, instruction, module, diagnostics, sourceLocation);
+  return new MutationPoint(this, address, instruction, function, diagnostics, sourceLocation, module);
 }
 
 /// Currently only used by SimpleTestFinder.

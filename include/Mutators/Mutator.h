@@ -29,9 +29,10 @@ enum class MutatorKind {
 class Mutator {
 public:
   virtual MutationPoint *getMutationPoint(MullModule *module,
-                                          MutationPointAddress &address,
+                                          llvm::Function *function,
                                           llvm::Instruction *instruction,
-                                          SourceLocation &sourceLocation) = 0;
+                                          SourceLocation &sourceLocation,
+                                          MutationPointAddress &address) = 0;
 
   virtual std::string getUniqueIdentifier() = 0;
   virtual std::string getUniqueIdentifier() const = 0;
