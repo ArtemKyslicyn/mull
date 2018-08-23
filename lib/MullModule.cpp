@@ -69,7 +69,7 @@ std::vector<std::string> MullModule::prepareMutations() {
 
   for (auto pair : mutationPoints) {
     auto original = pair.first;
-    mutatedFunctionNames.push_back(original->getName());
+    mutatedFunctionNames.push_back(original->getName().str() + "_" + getUniqueIdentifier());
     for (auto point : pair.second) {
       ValueToValueMapTy map;
       auto mutatedFunction = CloneFunction(original, map);
@@ -78,7 +78,7 @@ std::vector<std::string> MullModule::prepareMutations() {
     }
     ValueToValueMapTy map;
     auto originalCopy = CloneFunction(original, map);
-    originalCopy->setName(original->getName() + "_original");
+    originalCopy->setName(original->getName() + "_" + getUniqueIdentifier() + "_original");
     original->deleteBody();
 
     std::vector<Value *> args;
@@ -87,7 +87,7 @@ std::vector<std::string> MullModule::prepareMutations() {
       args.push_back(arg);
     }
 
-    auto name = original->getName().str() + "_trampoline";
+    auto name = original->getName().str() + "_" + getUniqueIdentifier() + "_trampoline";
     auto trampoline = module->getOrInsertGlobal(name, original->getFunctionType()->getPointerTo());
     BasicBlock *block = BasicBlock::Create(module->getContext(), "indirect_call", original);
     auto loadValue = new LoadInst(trampoline, "indirect_function_pointer", block);

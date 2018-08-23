@@ -26,6 +26,11 @@ void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage,
     trampolines.insert(std::make_pair(trampolineName, new uint64_t));
   }
 
+  std::string a = std::string("\ntramps: ") + std::to_string(trampolines.size()) + "\n";
+  std::string b = std::string("funcs: ") + std::to_string(mutatedFunctionNames.size()) + "\n";
+
+  errs() << a << b;
+
   runner.loadMutatedProgram(objectFiles, trampolines, jit);
 
   for (auto &name: mutatedFunctionNames) {
@@ -39,7 +44,8 @@ void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage,
     auto mutationPoint = *it;
 
     auto name = mutationPoint->getOriginalFunction()->getName().str();
-    auto trampolineName = std::string("_") + name + "_trampoline";
+    auto moduleId = mutationPoint->getOriginalModule()->getUniqueIdentifier();
+    auto trampolineName = std::string("_") + name + "_" + moduleId + "_trampoline";
     auto mutatedFunctionName = std::string("_") + mutationPoint->getUniqueIdentifier();
     uint64_t *trampoline = trampolines.at(trampolineName);
     uint64_t address = llvm_compat::JITSymbolAddress(jit.getSymbol(mutatedFunctionName));

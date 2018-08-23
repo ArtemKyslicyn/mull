@@ -22,15 +22,11 @@ void mull::OriginalCompilationTask::operator()(mull::OriginalCompilationTask::it
   for (auto it = begin; it != end; it++, counter.increment()) {
     auto &module = *it->get();
 
-//    errs() << "\n";
-//    errs() << module.getModule()->getModuleIdentifier() << "\n";
-//    errs() << module.getModule()->getFunctionList().size() << "\n";
-
-//    auto objectFile = toolchain.cache().getObject(module);
-//    if (objectFile.getBinary() == nullptr) {
-      auto objectFile = toolchain.compiler().compileModule(module, *localMachine);
+    auto objectFile = toolchain.cache().getObject(module);
+    if (objectFile.getBinary() == nullptr) {
+      objectFile = toolchain.compiler().compileModule(module, *localMachine);
       toolchain.cache().putObject(objectFile, module);
-//    }
+    }
 
     storage.push_back(std::move(objectFile));
   }

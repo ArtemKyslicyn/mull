@@ -230,7 +230,7 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   }
 
   std::vector<ApplyMutationTask> applyMutationTasks;
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < config.parallelization().workers; i++) {
     applyMutationTasks.emplace_back();
   }
   std::vector<int> empty;
@@ -238,7 +238,7 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   applyMutations.execute();
 
   std::vector<OriginalCompilationTask> compilationTasks;
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < config.parallelization().workers; i++) {
     compilationTasks.emplace_back(toolchain);
   }
   TaskExecutor<OriginalCompilationTask> mutantCompiler("Compiling original code", context.getModules(), ownedObjectFiles, std::move(compilationTasks));
