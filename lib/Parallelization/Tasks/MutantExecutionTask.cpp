@@ -49,6 +49,8 @@ void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage,
     auto mutatedFunctionName = std::string("_") + mutationPoint->getUniqueIdentifier();
     uint64_t *trampoline = trampolines.at(trampolineName);
     uint64_t address = llvm_compat::JITSymbolAddress(jit.getSymbol(mutatedFunctionName));
+    uint64_t originalAddress = *trampoline;
+    *trampoline = address;
 
     auto atLeastOneTestFailed = false;
     for (auto &reachableTest : mutationPoint->getReachableTests()) {
@@ -63,7 +65,6 @@ void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage,
         const auto sandboxTimeout = std::max(30LL, timeout);
 
         result = sandbox.run([&]() {
-          *trampoline = address;
           ExecutionStatus status = runner.runTest(test, jit);
           assert(status != ExecutionStatus::Invalid && "Expect to see valid TestResult");
           return status;
@@ -79,5 +80,7 @@ void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage,
 
       storage.push_back(make_unique<MutationResult>(result, mutationPoint, distance, test));
     }
+
+    *trampoline = originalAddress;
   }
 }
