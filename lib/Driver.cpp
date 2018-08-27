@@ -112,8 +112,9 @@ void Driver::loadPrecompiledObjectFiles() {
     tasks.emplace_back(LoadObjectFilesTask());
   }
 
+  auto paths = config.getObjectFilesPaths();
   TaskExecutor<LoadObjectFilesTask> loader("Loading precompiled object files",
-                                           config.getObjectFilesPaths(),
+                                           paths,
                                            precompiledObjectFiles,
                                            tasks);
   loader.execute();
