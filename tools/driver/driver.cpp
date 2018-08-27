@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
   }
 
   else if (testFramework == "CustomTest") {
+//    filter.skipByName("dopr");
     testFinder = make_unique<CustomTestFinder>(config.getCustomTests());
     testRunner = make_unique<CustomTestRunner>(toolchain.targetMachine());
   }

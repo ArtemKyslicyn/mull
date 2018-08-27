@@ -25,6 +25,7 @@
 #include <sys/types.h>
 
 #include <map>
+#include <llvm/Support/Path.h>
 
 using namespace llvm;
 using namespace llvm::object;
@@ -222,10 +223,12 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
 
   std::vector<std::string> mutatedFunctions;
 
+  errs() << "muttaed funcs:" << "\n";
   for (auto &module : context.getModules()) {
     auto functions = module->prepareMutations();
     for (auto &name : functions) {
       mutatedFunctions.push_back(name);
+      errs() << "    " << name << "\n";
     }
   }
 
@@ -236,6 +239,16 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   std::vector<int> empty;
   TaskExecutor<ApplyMutationTask> applyMutations("Applying mutations", mutationPoints, empty, std::move(applyMutationTasks));
   applyMutations.execute();
+
+  for (auto &m : context.getModules()) {
+    continue;
+    auto name = std::string("/tmp/mutants2/") + sys::path::filename(m->getModule()->getModuleIdentifier()).str();
+    std::error_code err;
+    errs() << name << "\n";
+    raw_fd_ostream stream(name, err, sys::fs::OpenFlags::F_Append);
+    m->getModule()->print(stream, nullptr);
+    stream.flush();
+  }
 
   std::vector<OriginalCompilationTask> compilationTasks;
   for (int i = 0; i < config.parallelization().workers; i++) {
@@ -252,7 +265,7 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   std::vector<std::unique_ptr<MutationResult>> mutationResults;
 
   std::vector<MutantExecutionTask> tasks;
-  for (int i = 0; i < config.parallelization().mutantExecutionWorkers; i++) {
+  for (int i = 0; i < /*config.parallelization().mutantExecutionWorkers*/ 1; i++) {
     tasks.emplace_back(*sandbox, runner, config, filter, objectFiles, mutatedFunctions);
   }
   metrics.beginMutantsExecution();

@@ -26,6 +26,8 @@ using namespace llvm;
 
 static TestModuleFactory TestModuleFactory;
 
+#if 0
+
 TEST(SimpleTestRunner, runTest) {
   InitializeNativeTarget();
   InitializeNativeTargetAsmPrinter();
@@ -119,3 +121,5 @@ TEST(SimpleTestRunner, runTest) {
 
   ObjectFiles.erase(ObjectFiles.begin(), ObjectFiles.end());
 }
+
+#endif

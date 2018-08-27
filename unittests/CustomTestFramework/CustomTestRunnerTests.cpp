@@ -118,7 +118,7 @@ TEST(CustomTestRunner, runFailingTest) {
   vector<object::ObjectFile *> objects;
   auto loadedModules = loadTestModules();
   for (auto &m : loadedModules) {
-    Module *module = m.get()->getModule();
+    Module *module = m->getModule();
     if (!constructor) {
       constructor = module->getFunction("initGlobalVariable");
     }

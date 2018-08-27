@@ -82,9 +82,13 @@ std::vector<std::string> MullModule::prepareMutations() {
     original->deleteBody();
 
     std::vector<Value *> args;
-    for (unsigned i = 0; i < original->getNumOperands(); i++) {
-      auto arg = original->getOperand(i);
-      args.push_back(arg);
+//    for (unsigned i = 0; i < original->getNumOperands(); i++) {
+//      auto arg = original->getOperand(i);
+//      args.push_back(arg);
+//    }
+
+    for (auto &arg : original->args()) {
+      args.push_back(&arg);
     }
 
     auto name = original->getName().str() + "_" + getUniqueIdentifier() + "_trampoline";
