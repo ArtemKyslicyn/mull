@@ -57,7 +57,6 @@ void progress_reporter::printProgress(progress_counter::CounterType current,
   if (current == previousValue && !force) {
     return;
   }
-  return;
 
   if (hasTerminal) {
     if (!force) backspace();

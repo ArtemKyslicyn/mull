@@ -224,12 +224,12 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
 
   std::vector<std::string> mutatedFunctions;
 
-  errs() << "muttaed funcs:" << "\n";
+//  errs() << "muttaed funcs:" << "\n";
   for (auto &module : context.getModules()) {
     auto functions = module->prepareMutations();
     for (auto &name : functions) {
       mutatedFunctions.push_back(name);
-      errs() << "    " << name << "\n";
+//      errs() << "    " << name << "\n";
     }
   }
 
@@ -266,7 +266,7 @@ std::vector<std::unique_ptr<MutationResult>> Driver::normalRunMutations(const st
   std::vector<std::unique_ptr<MutationResult>> mutationResults;
 
   std::vector<MutantExecutionTask> tasks;
-  for (int i = 0; i < /*config.parallelization().mutantExecutionWorkers*/ 1; i++) {
+  for (int i = 0; i < config.parallelization().mutantExecutionWorkers; i++) {
     tasks.emplace_back(*sandbox, runner, config, filter, objectFiles, mutatedFunctions);
   }
   metrics.beginMutantsExecution();
