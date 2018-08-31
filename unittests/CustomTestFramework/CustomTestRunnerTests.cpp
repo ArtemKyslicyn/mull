@@ -53,7 +53,8 @@ TEST(CustomTestRunner, noTestNameSpecified) {
   CustomTest_Test test("test", "mull", {}, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  runner.loadProgram(objects, jit);
+  std::map<std::string, uint64_t *> trampolines;
+  runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
   }, TestTimeout);
@@ -77,7 +78,8 @@ TEST(CustomTestRunner, tooManyParameters) {
   CustomTest_Test test("test", "mull", { "arg1", "arg2" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  runner.loadProgram(objects, jit);
+  std::map<std::string, uint64_t *> trampolines;
+  runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
   }, TestTimeout);
@@ -101,7 +103,8 @@ TEST(CustomTestRunner, runPassingTest) {
   CustomTest_Test test("test", "mull", { "passing_test" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  runner.loadProgram(objects, jit);
+  std::map<std::string, uint64_t *> trampolines;
+  runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
   }, TestTimeout);
@@ -130,7 +133,8 @@ TEST(CustomTestRunner, runFailingTest) {
   CustomTest_Test test("test", "mull", { "failing_test" }, nullptr, { constructor });
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  runner.loadProgram(objects, jit);
+  std::map<std::string, uint64_t *> trampolines;
+  runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
   }, TestTimeout);
@@ -154,7 +158,8 @@ TEST(CustomTestRunner, attemptToRunUnknownTest) {
   CustomTest_Test test("test", "mull", { "foobar" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  runner.loadProgram(objects, jit);
+  std::map<std::string, uint64_t *> trampolines;
+  runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
   }, TestTimeout);

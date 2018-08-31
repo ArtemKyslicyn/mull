@@ -123,6 +123,7 @@ void MutationPoint::addReachableTest(Test *test, int distance) {
 }
 
 void MutationPoint::applyMutation() {
+  assert(mutatedFunction != nullptr);
   mutator->applyMutation(mutatedFunction, Address);
 }
 
