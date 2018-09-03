@@ -2,9 +2,6 @@
 
 #include "TestRunner.h"
 
-#include "Mangler.h"
-#include "Toolchain/JITEngine.h"
-
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/Object/Binary.h>
 #include <llvm/Object/ObjectFile.h>
@@ -17,11 +14,12 @@ class Function;
 }
 
 namespace mull {
-
+class Mangler;
+class JITEngine;
 struct InstrumentationInfo;
 
 class GoogleTestRunner : public TestRunner {
-  Mangler mangler;
+  Mangler &mangler;
   llvm::orc::LocalCXXRuntimeOverrides overrides;
 
   std::string fGoogleTestInit;
@@ -30,11 +28,11 @@ class GoogleTestRunner : public TestRunner {
   InstrumentationInfo **trampoline;
 public:
 
-  GoogleTestRunner(llvm::TargetMachine &machine);
-  ~GoogleTestRunner();
+  explicit GoogleTestRunner(Mangler &mangler);
+  ~GoogleTestRunner() override;
 
   void loadInstrumentedProgram(ObjectFiles &objectFiles, Instrumentation &instrumentation, JITEngine &jit) override;
-  void loadMutatedProgram(ObjectFiles &objectFiles, std::map<std::string, uint64_t *> &trampolines, JITEngine &jit) override;
+  void loadMutatedProgram(ObjectFiles &objectFiles, Trampolines &trampolines, JITEngine &jit) override;
   ExecutionStatus runTest(Test *test, JITEngine &jit) override;
 
 private:

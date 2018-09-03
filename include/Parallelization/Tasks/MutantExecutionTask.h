@@ -28,6 +28,7 @@ public:
                       std::vector<std::string> &mutatedFunctionNames);
 
   void operator() (iterator begin, iterator end, Out &storage, progress_counter &counter);
+private:
   JITEngine jit;
   ProcessSandbox &sandbox;
   TestRunner &runner;

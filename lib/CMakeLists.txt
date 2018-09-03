@@ -35,6 +35,7 @@ set(mull_sources
   Toolchain/Resolvers/InstrumentationResolver.cpp
   Toolchain/Resolvers/NativeResolver.cpp
   Toolchain/Resolvers/MutationResolver.cpp
+  Toolchain/Trampolines.cpp
 
   MullModule.cpp
   MutationPoint.cpp

@@ -4,6 +4,8 @@
 #include "Toolchain/Resolvers/InstrumentationResolver.h"
 #include "Toolchain/Resolvers/NativeResolver.h"
 #include "Toolchain/Resolvers/MutationResolver.h"
+#include "Mangler.h"
+#include "Toolchain/Trampolines.h"
 
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 
@@ -11,9 +13,8 @@ using namespace mull;
 using namespace llvm;
 using namespace llvm::orc;
 
-CustomTestRunner::CustomTestRunner(llvm::TargetMachine &machine) :
-  TestRunner(machine),
-  mangler(Mangler(machine.createDataLayout())),
+CustomTestRunner::CustomTestRunner(Mangler &mangler) :
+  mangler(mangler),
   overrides([this](const char *name) {
     return this->mangler.getNameWithPrefix(name);
   }),
@@ -63,9 +64,10 @@ void CustomTestRunner::loadInstrumentedProgram(ObjectFiles &objectFiles,
 }
 
 void CustomTestRunner::loadMutatedProgram(ObjectFiles &objectFiles,
-                                          std::map<std::string, uint64_t *> &trampolines,
+                                          Trampolines &trampolines,
                                           JITEngine &jit) {
-  MutationResolver resolver(overrides, trampolines);
+  trampolines.allocateTrampolines(mangler);
+  MutationResolver resolver(overrides, trampolines, mangler);
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
 }
 

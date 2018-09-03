@@ -2,6 +2,8 @@
 
 #include "GoogleTest/GoogleTest_Test.h"
 #include "Mangler.h"
+#include "Toolchain/JITEngine.h"
+#include "Toolchain/Trampolines.h"
 
 #include "Toolchain/Resolvers/InstrumentationResolver.h"
 #include "Toolchain/Resolvers/NativeResolver.h"
@@ -18,9 +20,8 @@ namespace {
   class UnitTest;
 }
 
-GoogleTestRunner::GoogleTestRunner(llvm::TargetMachine &machine) :
-  TestRunner(machine),
-  mangler(Mangler(machine.createDataLayout())),
+GoogleTestRunner::GoogleTestRunner(Mangler &mangler) :
+  mangler(mangler),
   overrides([this](const char *name) {
     return this->mangler.getNameWithPrefix(name);
   }),
@@ -127,9 +128,9 @@ ExecutionStatus GoogleTestRunner::runTest(Test *test, JITEngine &jit) {
 }
 
 void GoogleTestRunner::loadMutatedProgram(TestRunner::ObjectFiles &objectFiles,
-                                          std::map<std::string, uint64_t *> &trampolines,
+                                          Trampolines &trampolines,
                                           JITEngine &jit) {
-  MutationResolver resolver(overrides, trampolines);
+  trampolines.allocateTrampolines(mangler);
+  MutationResolver resolver(overrides, trampolines, mangler);
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
-
 }

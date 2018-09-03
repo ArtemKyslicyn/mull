@@ -5,8 +5,7 @@
 using namespace mull;
 using namespace llvm;
 
-TestRunner::TestRunner(llvm::TargetMachine &targetMachine)
-  : machine(targetMachine)
+TestRunner::TestRunner()
 {
   sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
 }

@@ -3,6 +3,7 @@
 #include "Driver.h"
 #include "Config.h"
 #include "TestRunner.h"
+#include "Toolchain/Trampolines.h"
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/Support/TargetSelect.h>
@@ -20,43 +21,19 @@ MutantExecutionTask::MutantExecutionTask(ProcessSandbox &sandbox,
       filter(filter), objectFiles(objectFiles), mutatedFunctionNames(mutatedFunctionNames) {}
 
 void MutantExecutionTask::operator()(iterator begin, iterator end, Out &storage, progress_counter &counter) {
-  std::map<std::string, uint64_t *> trampolines;
-//  errs() << "trampolines:" << "\n";
-  for (auto &name: mutatedFunctionNames) {
-    auto trampolineName = std::string("_") + name + "_trampoline";
-    trampolines.insert(std::make_pair(trampolineName, new uint64_t));
-//    errs() << trampolineName << "\n";
-  }
-
-//  std::string a = std::string("\ntramps: ") + std::to_string(trampolines.size()) + "\n";
-//  std::string b = std::string("funcs: ") + std::to_string(mutatedFunctionNames.size()) + "\n";
-
-//  errs() << a << b;
+  Trampolines trampolines(mutatedFunctionNames);
+  trampolines.fixupOriginalFunctions(jit);
 
   runner.loadMutatedProgram(objectFiles, trampolines, jit);
-
-  for (auto &name: mutatedFunctionNames) {
-    auto trampolineName = std::string("_") + name + "_trampoline";
-    auto originalName = std::string("_") + name + "_original";
-    uint64_t *trampoline = trampolines.at(trampolineName);
-    *trampoline = llvm_compat::JITSymbolAddress(jit.getSymbol(originalName));
-
-//    errs() << "Point '" << trampolineName << "' to '" << originalName << "'\n";
-  }
-
-//  errs() << "mutants:" << "\n";
 
   for (auto it = begin; it != end; ++it, counter.increment()) {
     auto mutationPoint = *it;
 
     auto name = mutationPoint->getOriginalFunction()->getName().str();
     auto moduleId = mutationPoint->getOriginalModule()->getUniqueIdentifier();
-    auto trampolineName = std::string("_") + name + "_" + moduleId + "_trampoline";
+    auto trampolineName = std::string("_") + name + "_" + moduleId;
     auto mutatedFunctionName = std::string("_") + mutationPoint->getUniqueIdentifier();
-//    errs() << "Patching   " << trampolineName << "\n";
-//    errs() << "    " << name << " -> ";
-//    errs() << "" << mutatedFunctionName << "\n\n\n";
-    uint64_t *trampoline = trampolines.at(trampolineName);
+    uint64_t *trampoline = trampolines.findTrampoline(trampolineName);
     uint64_t address = llvm_compat::JITSymbolAddress(jit.getSymbol(mutatedFunctionName));
     uint64_t originalAddress = *trampoline;
     *trampoline = address;

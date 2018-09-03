@@ -1,10 +1,12 @@
 #include "SimpleTest/SimpleTestRunner.h"
 #include "SimpleTest/SimpleTest_Test.h"
+#include "Toolchain/JITEngine.h"
 
 #include "Toolchain/Resolvers/InstrumentationResolver.h"
 #include "Toolchain/Resolvers/NativeResolver.h"
 #include "Toolchain/Resolvers/MutationResolver.h"
 #include "Mangler.h"
+#include "Toolchain/Trampolines.h"
 
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Function.h>
@@ -14,14 +16,12 @@
 using namespace mull;
 using namespace llvm;
 
-SimpleTestRunner::SimpleTestRunner(TargetMachine &machine)
-  : TestRunner(machine),
-    mangler(Mangler(machine.createDataLayout())),
-    overrides([this](const char *name) {
-      return this->mangler.getNameWithPrefix(name);
-    }),
-    trampoline(new InstrumentationInfo*)
-{}
+SimpleTestRunner::SimpleTestRunner(Mangler &mangler)
+    : mangler(mangler),
+      overrides([this](const char *name) {
+        return this->mangler.getNameWithPrefix(name);
+      }),
+      trampoline(new InstrumentationInfo *) {}
 
 SimpleTestRunner::~SimpleTestRunner() {
   delete trampoline;
@@ -44,9 +44,10 @@ void SimpleTestRunner::loadInstrumentedProgram(ObjectFiles &objectFiles,
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
 }
 
-void SimpleTestRunner::loadMutatedProgram(ObjectFiles &objectFiles, std::map<std::string, uint64_t *> &trampolines,
+void SimpleTestRunner::loadMutatedProgram(ObjectFiles &objectFiles, Trampolines &trampolines,
                                           JITEngine &jit) {
-  MutationResolver resolver(overrides, trampolines);
+  trampolines.allocateTrampolines(mangler);
+  MutationResolver resolver(overrides, trampolines, mangler);
   jit.addObjectFiles(objectFiles, resolver, make_unique<SectionMemoryManager>());
 }
 

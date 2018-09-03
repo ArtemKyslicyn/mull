@@ -8,6 +8,9 @@
 #include "MutationsFinder.h"
 #include "Filter.h"
 #include "Testee.h"
+#include "Toolchain/Toolchain.h"
+#include "Toolchain/JITEngine.h"
+#include "Toolchain/Trampolines.h"
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/InstrTypes.h>
@@ -26,100 +29,82 @@ using namespace llvm;
 
 static TestModuleFactory TestModuleFactory;
 
-#if 0
-
 TEST(SimpleTestRunner, runTest) {
   InitializeNativeTarget();
   InitializeNativeTargetAsmPrinter();
   InitializeNativeTargetAsmParser();
 
-  std::unique_ptr<TargetMachine> targetMachine(
-                                EngineBuilder().selectTarget(Triple(), "", "",
-                                SmallVector<std::string, 1>()));
-
-  Compiler compiler;
-  Context Ctx;
-  SimpleTestRunner Runner(*targetMachine);
-  SimpleTestRunner::ObjectFiles ObjectFiles;
-  SimpleTestRunner::OwnedObjectFiles OwnedObjectFiles;
-
-  auto OwnedModuleWithTests   = TestModuleFactory.create_SimpleTest_CountLettersTest_Module();
-  auto OwnedModuleWithTestees = TestModuleFactory.create_SimpleTest_CountLetters_Module();
-
-  Module *ModuleWithTests   = OwnedModuleWithTests->getModule();
-  Module *ModuleWithTestees = OwnedModuleWithTestees->getModule();
-
-  Ctx.addModule(std::move(OwnedModuleWithTests));
-  Ctx.addModule(std::move(OwnedModuleWithTestees));
   Config config;
   config.normalizeParallelizationConfig();
+
+  Toolchain toolchain(config);
+
+  Context context;
+  SimpleTestRunner testRunner(toolchain.mangler());
+  SimpleTestRunner::ObjectFiles objectFiles;
+  SimpleTestRunner::OwnedObjectFiles ownedObjectFiles;
+
+  auto ownedModuleWithTests   = TestModuleFactory.create_SimpleTest_CountLettersTest_Module();
+  auto ownedModuleWithTestees = TestModuleFactory.create_SimpleTest_CountLetters_Module();
+
+  Module *moduleWithTests   = ownedModuleWithTests->getModule();
+  Module *moduleWithTestees = ownedModuleWithTestees->getModule();
+
+  context.addModule(std::move(ownedModuleWithTests));
+  context.addModule(std::move(ownedModuleWithTestees));
 
   std::vector<std::unique_ptr<Mutator>> mutators;
   mutators.emplace_back(make_unique<MathAddMutator>());
   MutationsFinder mutationsFinder(std::move(mutators), config);
   Filter filter;
 
-  SimpleTestFinder testFinder;
-
-  auto Tests = testFinder.findTests(Ctx, filter);
-
-  ASSERT_NE(0U, Tests.size());
-
-  auto &Test = *(Tests.begin());
-
-  {
-    auto Obj = compiler.compileModule(ModuleWithTests, *targetMachine);
-    ObjectFiles.push_back(Obj.getBinary());
-    OwnedObjectFiles.push_back(std::move(Obj));
-  }
-
-  {
-    auto Obj = compiler.compileModule(ModuleWithTestees, *targetMachine);
-    ObjectFiles.push_back(Obj.getBinary());
-    OwnedObjectFiles.push_back(std::move(Obj));
-  }
-
-  JITEngine jit;
-
-  /// Here we run test with original testee function
-  Runner.loadProgram(ObjectFiles, jit);
-  ASSERT_EQ(ExecutionStatus::Passed, Runner.runTest(Test.get(), jit));
-
-  ObjectFiles.erase(ObjectFiles.begin(), ObjectFiles.end());
-
-  /// afterwards we apply single mutation and run test again
-  /// expecting it to fail
-
-  Function *testeeFunction = Ctx.lookupDefinedFunction("count_letters");
+  Function *testeeFunction = context.lookupDefinedFunction("count_letters");
   std::vector<std::unique_ptr<Testee>> testees;
   testees.emplace_back(make_unique<Testee>(testeeFunction, nullptr, 1));
   auto mergedTestees = mergeTestees(testees);
 
-  std::vector<MutationPoint *> MutationPoints =
-    mutationsFinder.getMutationPoints(Ctx, mergedTestees, filter);
+  std::vector<MutationPoint *> mutationPoints =
+      mutationsFinder.getMutationPoints(context, mergedTestees, filter);
 
-  MutationPoint *MP = (*(MutationPoints.begin()));
+  MutationPoint *mutationPoint = mutationPoints.front();
 
-  LLVMContext localContext;
-  auto ownedMutatedTesteeModule = MP->getOriginalModule()->clone(localContext);
-  MP->applyMutation();
+  SimpleTestFinder testFinder;
+
+  auto tests = testFinder.findTests(context, filter);
+
+  ASSERT_NE(0U, tests.size());
+
+  auto &test = tests.front();
 
   {
-    auto Obj = compiler.compileModule(ModuleWithTests, *targetMachine);
-    ObjectFiles.push_back(Obj.getBinary());
-    OwnedObjectFiles.push_back(std::move(Obj));
+    auto owningBinary = toolchain.compiler().compileModule(moduleWithTests, toolchain.targetMachine());
+    objectFiles.push_back(owningBinary.getBinary());
+    ownedObjectFiles.push_back(std::move(owningBinary));
   }
 
   {
-    auto Obj = compiler.compileModule(ownedMutatedTesteeModule->getModule(), *targetMachine);
-    ObjectFiles.push_back(Obj.getBinary());
-    OwnedObjectFiles.push_back(std::move(Obj));
+    auto owningBinary = toolchain.compiler().compileModule(moduleWithTestees, toolchain.targetMachine());
+    objectFiles.push_back(owningBinary.getBinary());
+    ownedObjectFiles.push_back(std::move(owningBinary));
   }
 
-  Runner.loadProgram(ObjectFiles, jit);
-  ASSERT_EQ(ExecutionStatus::Failed, Runner.runTest(Test.get(), jit));
+  JITEngine jit;
 
-  ObjectFiles.erase(ObjectFiles.begin(), ObjectFiles.end());
+  auto mutatedFunctions = mutationPoint->getOriginalModule()->prepareMutations();
+  mutationPoint->applyMutation();
+  Trampolines trampolines(mutatedFunctions);
+
+  testRunner.loadMutatedProgram(objectFiles, trampolines, jit);
+  ASSERT_EQ(ExecutionStatus::Passed, testRunner.runTest(test.get(), jit));
+
+  auto name = mutationPoint->getOriginalFunction()->getName().str();
+  auto moduleId = mutationPoint->getOriginalModule()->getUniqueIdentifier();
+  auto trampolineName = std::string("_") + name + "_" + moduleId;
+  auto mutatedFunctionName = std::string("_") + mutationPoint->getUniqueIdentifier();
+  uint64_t *trampoline = trampolines.findTrampoline(trampolineName);
+  uint64_t address = llvm_compat::JITSymbolAddress(jit.getSymbol(mutatedFunctionName));
+  *trampoline = address;
+
+  testRunner.loadMutatedProgram(objectFiles, trampolines, jit);
+  ASSERT_EQ(ExecutionStatus::Failed, testRunner.runTest(test.get(), jit));
 }
-
-#endif

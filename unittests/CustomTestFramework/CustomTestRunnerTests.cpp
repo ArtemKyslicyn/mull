@@ -3,7 +3,9 @@
 #include "ForkProcessSandbox.h"
 
 #include "Toolchain/Toolchain.h"
+#include "Toolchain/Trampolines.h"
 #include "Config.h"
+#include "Mangler.h"
 
 #include "CustomTestFramework/CustomTest_Test.h"
 #include "CustomTestFramework/CustomTestRunner.h"
@@ -15,6 +17,8 @@
 using namespace mull;
 using namespace llvm;
 using namespace std;
+
+using Mangler = mull::Mangler;
 
 static TestModuleFactory SharedTestModuleFactory;
 static LLVMContext context;
@@ -39,7 +43,8 @@ static vector<unique_ptr<MullModule>> loadTestModules() {
 TEST(CustomTestRunner, noTestNameSpecified) {
   Config config;
   Toolchain toolchain(config);
-  CustomTestRunner runner(toolchain.targetMachine());
+  mull::Mangler mangler(toolchain.targetMachine().createDataLayout());
+  CustomTestRunner runner(mangler);
 
   vector<object::OwningBinary<object::ObjectFile>> ownedObjects;
   vector<object::ObjectFile *> objects;
@@ -53,7 +58,7 @@ TEST(CustomTestRunner, noTestNameSpecified) {
   CustomTest_Test test("test", "mull", {}, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  std::map<std::string, uint64_t *> trampolines;
+  Trampolines trampolines({});
   runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
@@ -64,7 +69,8 @@ TEST(CustomTestRunner, noTestNameSpecified) {
 TEST(CustomTestRunner, tooManyParameters) {
   Config config;
   Toolchain toolchain(config);
-  CustomTestRunner runner(toolchain.targetMachine());
+  mull::Mangler mangler(toolchain.targetMachine().createDataLayout());
+  CustomTestRunner runner(mangler);
 
   vector<object::OwningBinary<object::ObjectFile>> ownedObjects;
   vector<object::ObjectFile *> objects;
@@ -78,7 +84,7 @@ TEST(CustomTestRunner, tooManyParameters) {
   CustomTest_Test test("test", "mull", { "arg1", "arg2" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  std::map<std::string, uint64_t *> trampolines;
+  Trampolines trampolines({});
   runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
@@ -89,7 +95,8 @@ TEST(CustomTestRunner, tooManyParameters) {
 TEST(CustomTestRunner, runPassingTest) {
   Config config;
   Toolchain toolchain(config);
-  CustomTestRunner runner(toolchain.targetMachine());
+  mull::Mangler mangler(toolchain.targetMachine().createDataLayout());
+  CustomTestRunner runner(mangler);
 
   vector<object::OwningBinary<object::ObjectFile>> ownedObjects;
   vector<object::ObjectFile *> objects;
@@ -103,7 +110,7 @@ TEST(CustomTestRunner, runPassingTest) {
   CustomTest_Test test("test", "mull", { "passing_test" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  std::map<std::string, uint64_t *> trampolines;
+  Trampolines trampolines({});
   runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
@@ -114,7 +121,8 @@ TEST(CustomTestRunner, runPassingTest) {
 TEST(CustomTestRunner, runFailingTest) {
   Config config;
   Toolchain toolchain(config);
-  CustomTestRunner runner(toolchain.targetMachine());
+  mull::Mangler mangler(toolchain.targetMachine().createDataLayout());
+  CustomTestRunner runner(mangler);
 
   Function *constructor = nullptr;
   vector<object::OwningBinary<object::ObjectFile>> ownedObjects;
@@ -133,7 +141,7 @@ TEST(CustomTestRunner, runFailingTest) {
   CustomTest_Test test("test", "mull", { "failing_test" }, nullptr, { constructor });
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  std::map<std::string, uint64_t *> trampolines;
+  Trampolines trampolines({});
   runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);
@@ -144,7 +152,8 @@ TEST(CustomTestRunner, runFailingTest) {
 TEST(CustomTestRunner, attemptToRunUnknownTest) {
   Config config;
   Toolchain toolchain(config);
-  CustomTestRunner runner(toolchain.targetMachine());
+  mull::Mangler mangler(toolchain.targetMachine().createDataLayout());
+  CustomTestRunner runner(mangler);
 
   vector<object::OwningBinary<object::ObjectFile>> ownedObjects;
   vector<object::ObjectFile *> objects;
@@ -158,7 +167,7 @@ TEST(CustomTestRunner, attemptToRunUnknownTest) {
   CustomTest_Test test("test", "mull", { "foobar" }, nullptr, {});
   ForkProcessSandbox sandbox;
   JITEngine jit;
-  std::map<std::string, uint64_t *> trampolines;
+  Trampolines trampolines({});
   runner.loadMutatedProgram(objects, trampolines, jit);
   ExecutionResult result = sandbox.run([&]() {
     return runner.runTest(&test, jit);

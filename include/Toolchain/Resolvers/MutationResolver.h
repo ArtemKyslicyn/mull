@@ -4,11 +4,15 @@
 #include "LLVMCompatibility.h"
 
 namespace mull {
+class Trampolines;
+class Mangler;
+
 class MutationResolver : public llvm_compat::SymbolResolver {
   llvm::orc::LocalCXXRuntimeOverrides &overrides;
-  std::map<std::string, uint64_t *> &trampolines;
+  Trampolines &trampolines;
+  Mangler &mangler;
 public:
-  MutationResolver(llvm::orc::LocalCXXRuntimeOverrides &overrides, std::map<std::string, uint64_t *> &trampolines);
+  MutationResolver(llvm::orc::LocalCXXRuntimeOverrides &overrides, Trampolines &trampolines, Mangler &mangler);
   llvm_compat::JITSymbolInfo findSymbol(const std::string &name) override;
   llvm_compat::JITSymbolInfo findSymbolInLogicalDylib(const std::string &name) override;
 };

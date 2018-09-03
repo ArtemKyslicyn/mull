@@ -5,6 +5,7 @@
 #include <llvm/ADT/Triple.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/Support/TargetSelect.h>
+#include <Toolchain/Toolchain.h>
 
 using namespace mull;
 
@@ -22,7 +23,8 @@ Toolchain::Toolchain(Config &config) :
   machine(llvm::EngineBuilder().selectTarget(llvm::Triple(), "", "",
                                          llvm::SmallVector<std::string, 1>())),
   objectCache(config.cachingEnabled(), config.getCacheDirectory()),
-  simpleCompiler()
+  simpleCompiler(),
+  nameMangler(machine->createDataLayout())
 {
 }
 
@@ -35,5 +37,9 @@ Compiler &Toolchain::compiler() {
 }
 
 llvm::TargetMachine &Toolchain::targetMachine() {
-  return *machine.get();
+  return *machine;
+}
+
+mull::Mangler &Toolchain::mangler() {
+  return nameMangler;
 }

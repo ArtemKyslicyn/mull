@@ -1,35 +1,32 @@
 #pragma once
 
 #include "TestRunner.h"
-#include "Mangler.h"
-#include "Toolchain/JITEngine.h"
-
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 
 namespace llvm {
 
 class Function;
-class TargetMachine;
 
 }
 
 namespace mull {
-
+class Mangler;
 class Test;
+class JITEngine;
 struct InstrumentationInfo;
 
 class SimpleTestRunner : public TestRunner {
-  Mangler mangler;
+  Mangler &mangler;
   llvm::orc::LocalCXXRuntimeOverrides overrides;
   InstrumentationInfo **trampoline;
 public:
-  explicit SimpleTestRunner(llvm::TargetMachine &targetMachine);
+  explicit SimpleTestRunner(Mangler &mangler);
   ~SimpleTestRunner() override;
 
   void loadInstrumentedProgram(ObjectFiles &objectFiles,
                                Instrumentation &instrumentation,
                                JITEngine &jit) override;
-  void loadMutatedProgram(ObjectFiles &objectFiles, std::map<std::string, uint64_t *> &trampolines, JITEngine &jit) override;
+  void loadMutatedProgram(ObjectFiles &objectFiles, Trampolines &trampolines, JITEngine &jit) override;
   ExecutionStatus runTest(Test *test, JITEngine &jit) override;
 
 private:
