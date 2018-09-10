@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.5.1)
 project(Mull)
 enable_language(C CXX)
 
+#add_subdirectory(CMake)
+include(CMake/Mull.cmake)
+
 # This enables assertions for Release builds.
 # https://stackoverflow.com/questions/22140520/how-to-enable-assert-in-cmake-release-mode
 string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -22,47 +25,47 @@ add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 # See example: Mull.toolchain.OSX.cmake")
 # endif()
 
-if (NOT LLVM_ROOT)
-  message(FATAL_ERROR "This CMakeLists.txt file expects cmake to be called with
-  LLVM_ROOT provided:\n \
-  -DLLVM_ROOT=path-to-llvm-installation")
-endif()
+# if (NOT LLVM_ROOT)
+#   message(FATAL_ERROR "This CMakeLists.txt file expects cmake to be called with
+#   LLVM_ROOT provided:\n \
+#   -DLLVM_ROOT=path-to-llvm-installation")
+# endif()
 
-include(Mull.LLVM.cmake)
+# include(Mull.LLVM.cmake)
 
 ## LLVM CXX flags
-llvm_get_cxx_flags(LLVM_CXX_FLAGS)
+# llvm_get_cxx_flags(LLVM_CXX_FLAGS)
 
 ## LLVM lib directory
-llvm_get_lib_dir(LLVM_LIB_PATH)
+# llvm_get_lib_dir(LLVM_LIB_PATH)
 
 ## LLVM linker flags.
-llvm_get_link_flags(LLVM_LINK_FLAGS)
+# llvm_get_link_flags(LLVM_LINK_FLAGS)
 # Without -undefined,dynamic_lookup flags there is a problem with order in which
 # the libraries are linked and that causes missing symbols.
 # https://github.com/eliben/llvm-clang-samples/pull/11
-set(LLVM_LINK_FLAGS "${LLVM_LINK_FLAGS} -Wl,-undefined,dynamic_lookup")
+# set(LLVM_LINK_FLAGS "${LLVM_LINK_FLAGS} -Wl,-undefined,dynamic_lookup")
 
 # To link the final executable correctly on Linux the LLVM and clang libraries
 # should be given to a linker in the right order. Alternatively, the libraries
 # could be wrapped into a --start-group/--end-group. Unfortunately, MacOS linker
 # does not support these options, so we do this trick here
-if (APPLE)
-  set (LD_START_GROUP "")
-  set (LD_END_GROUP "")
-else()
-  set (LD_START_GROUP "-Wl,--start-group")
-  set (LD_END_GROUP "-Wl,--end-group")
-endif()
+# if (APPLE)
+#   set (LD_START_GROUP "")
+#   set (LD_END_GROUP "")
+# else()
+#   set (LD_START_GROUP "-Wl,--start-group")
+#   set (LD_END_GROUP "-Wl,--end-group")
+# endif()
 
 # LLVM libraries
-set(llvm_components
-  "asmparser"
-  "orcjit"
-  "support"
-  "x86"
-  "option")
-llvm_get_libs(MULL_DEPENDENCY_LLVM_LIBRARIES "${llvm_components}")
+# set(llvm_components
+#   "asmparser"
+#   "orcjit"
+#   "support"
+#   "x86"
+#   "option")
+# llvm_get_libs(MULL_DEPENDENCY_LLVM_LIBRARIES "${llvm_components}")
 
 # https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -75,45 +78,45 @@ set(MULL_INCLUDE_DIR  ${MULL_SOURCE_DIR}/include)
 
 include_directories("${LLVM_ROOT}/include")
 
-## LLVM's dependencies.
-find_library(MULL_DEPENDENCY_LIBZ z HINTS ${MULL_TOOLCHAIN_LIBZ_PATH})
-find_library(MULL_DEPENDENCY_NCURSES ncurses)
-## Mull's own dependencies:
-find_library(MULL_DEPENDENCY_SQLITE sqlite3 HINTS ${MULL_TOOLCHAIN_SQLITE_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG clang HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_TOOLING clangTooling HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_BASIC clangBasic HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_FRONTEND clangFrontend HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_AST clangAST HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_LEX clangLex HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_DRIVER clangDriver HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_SEMA clangSema HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_SERIALIZATION clangSerialization HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_ANALYSIS clangAnalysis HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_PARSE clangParse HINTS ${LLVM_LIB_PATH})
-find_library(MULL_DEPENDENCY_LIBCLANG_EDIT clangEdit HINTS ${LLVM_LIB_PATH})
+# ## LLVM's dependencies.
+# find_library(MULL_DEPENDENCY_LIBZ z HINTS ${MULL_TOOLCHAIN_LIBZ_PATH})
+# find_library(MULL_DEPENDENCY_NCURSES ncurses)
+# ## Mull's own dependencies:
+# find_library(MULL_DEPENDENCY_SQLITE sqlite3 HINTS ${MULL_TOOLCHAIN_SQLITE_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG clang HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_TOOLING clangTooling HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_BASIC clangBasic HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_FRONTEND clangFrontend HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_AST clangAST HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_LEX clangLex HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_DRIVER clangDriver HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_SEMA clangSema HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_SERIALIZATION clangSerialization HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_ANALYSIS clangAnalysis HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_PARSE clangParse HINTS ${LLVM_LIB_PATH})
+# find_library(MULL_DEPENDENCY_LIBCLANG_EDIT clangEdit HINTS ${LLVM_LIB_PATH})
 
 
 include_directories(${MULL_INCLUDE_DIR})
 
-if(MULL_SUPPORT_RUST)
-  set(rust_cmake_path "${CMAKE_CURRENT_SOURCE_DIR}/.mull.rust.cmake")
-  IF(NOT EXISTS ${rust_cmake_path})
-    message(FATAL_ERROR "MULL_SUPPORT_RUST is enabled but .mull.rust.cmake \
-      file was not found at path: \
-      ${rust_cmake_path}. Please take \
-      .mull.rust.cmake.example and modify according to your system")
-  endif()
+# if(MULL_SUPPORT_RUST)
+#   set(rust_cmake_path "${CMAKE_CURRENT_SOURCE_DIR}/.mull.rust.cmake")
+#   IF(NOT EXISTS ${rust_cmake_path})
+#     message(FATAL_ERROR "MULL_SUPPORT_RUST is enabled but .mull.rust.cmake \
+#       file was not found at path: \
+#       ${rust_cmake_path}. Please take \
+#       .mull.rust.cmake.example and modify according to your system")
+#   endif()
 
-  include(${rust_cmake_path})
+#   include(${rust_cmake_path})
 
-  message(STATUS "Mull.Rust> Rust lib path: ${mull_rust_libpath}")
-  add_definitions(-DMULL_SUPPORT_RUST=1)
-endif()
+#   message(STATUS "Mull.Rust> Rust lib path: ${mull_rust_libpath}")
+#   add_definitions(-DMULL_SUPPORT_RUST=1)
+# endif()
 
 add_subdirectory(lab)
 
-llvm_get_version(LLVM_VERSION)
+# llvm_get_version(LLVM_VERSION)
 add_subdirectory(LLVMCompatibility/${LLVM_VERSION})
 include_directories(LLVMCompatibility/${LLVM_VERSION})
 

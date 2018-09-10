@@ -62,9 +62,9 @@ target_link_libraries(MullUnitTests
 
   google-test
 
-  ${MULL_DEPENDENCY_LLVM_LIBRARIES}
+  # ${MULL_DEPENDENCY_LLVM_LIBRARIES}
 
-  ${CMAKE_THREAD_LIBS_INIT}
+  # ${CMAKE_THREAD_LIBS_INIT}
 )
 
 # compile flags
@@ -75,7 +75,7 @@ endif()
 set(mull_unittests_compileflags ${default_compile_flags} ${LLVM_CXX_FLAGS})
 set_target_properties(MullUnitTests
   PROPERTIES COMPILE_FLAGS
-  "${mull_unittests_compileflags}"
+  "${MULL_CXX_FLAGS} ${mull_unittests_compileflags}"
 )
 
 # Link flags

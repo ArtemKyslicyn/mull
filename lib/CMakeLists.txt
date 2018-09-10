@@ -87,67 +87,67 @@ set(mull_header_dirs
   ${MULL_INCLUDE_DIR}/Parallelization/Tasks
 )
 
-set(mull_additional_libraries
-  ${MULL_DEPENDENCY_LIBZ}
-  ${MULL_DEPENDENCY_NCURSES}
-  ${MULL_DEPENDENCY_SQLITE}
+# set(mull_additional_libraries
+#   ${MULL_DEPENDENCY_LIBZ}
+#   ${MULL_DEPENDENCY_NCURSES}
+#   ${MULL_DEPENDENCY_SQLITE}
 
-  ${LD_START_GROUP}
-  ${MULL_DEPENDENCY_LLVM_LIBRARIES}
+#   ${LD_START_GROUP}
+#   ${MULL_DEPENDENCY_LLVM_LIBRARIES}
 
-  ${MULL_DEPENDENCY_LIBCLANG}
-  ${MULL_DEPENDENCY_LIBCLANG_TOOLING}
-  ${MULL_DEPENDENCY_LIBCLANG_BASIC}
-  ${MULL_DEPENDENCY_LIBCLANG_FRONTEND}
-  ${MULL_DEPENDENCY_LIBCLANG_AST}
-  ${MULL_DEPENDENCY_LIBCLANG_DRIVER}
-  ${MULL_DEPENDENCY_LIBCLANG_LEX}
-  ${MULL_DEPENDENCY_LIBCLANG_SEMA}
-  ${MULL_DEPENDENCY_LIBCLANG_SERIALIZATION}
-  ${MULL_DEPENDENCY_LIBCLANG_ANALYSIS}
-  ${MULL_DEPENDENCY_LIBCLANG_PARSE}
-  ${MULL_DEPENDENCY_LIBCLANG_EDIT}
-  ${LD_END_GROUP}
-)
+#   ${MULL_DEPENDENCY_LIBCLANG}
+#   ${MULL_DEPENDENCY_LIBCLANG_TOOLING}
+#   ${MULL_DEPENDENCY_LIBCLANG_BASIC}
+#   ${MULL_DEPENDENCY_LIBCLANG_FRONTEND}
+#   ${MULL_DEPENDENCY_LIBCLANG_AST}
+#   ${MULL_DEPENDENCY_LIBCLANG_DRIVER}
+#   ${MULL_DEPENDENCY_LIBCLANG_LEX}
+#   ${MULL_DEPENDENCY_LIBCLANG_SEMA}
+#   ${MULL_DEPENDENCY_LIBCLANG_SERIALIZATION}
+#   ${MULL_DEPENDENCY_LIBCLANG_ANALYSIS}
+#   ${MULL_DEPENDENCY_LIBCLANG_PARSE}
+#   ${MULL_DEPENDENCY_LIBCLANG_EDIT}
+#   ${LD_END_GROUP}
+# )
 
 set(mull_link_flags "") # to be filled later
 set(mull_rpath "")      # to be filled later
 
-if(MULL_SUPPORT_RUST)
-  message(STATUS "Mull> MULL_SUPPORT_RUST detected.")
+# if(MULL_SUPPORT_RUST)
+#   message(STATUS "Mull> MULL_SUPPORT_RUST detected.")
 
-  set(mull_sources
-    ${mull_sources}
-    Rust/RustTest.cpp
-    Rust/RustTestFinder.cpp
-    Rust/RustTestRunner.cpp
-    Rust/RustSymbolDemangling.cpp)
+#   set(mull_sources
+#     ${mull_sources}
+#     Rust/RustTest.cpp
+#     Rust/RustTestFinder.cpp
+#     Rust/RustTestRunner.cpp
+#     Rust/RustSymbolDemangling.cpp)
 
-  set(mull_header_dirs
-    ${mull_header_dirs}
-    ${MULL_INCLUDE_DIR}/Rust)
+#   set(mull_header_dirs
+#     ${mull_header_dirs}
+#     ${MULL_INCLUDE_DIR}/Rust)
 
-  IF(NOT EXISTS ${MULL_RUST_LIB_PATH})
-    message(FATAL_ERROR
-      "MULL_RUST_LIB_PATH variable should be set to a valid \
-      existing path in .mull.rust.cmake")
-  endif()
+#   IF(NOT EXISTS ${MULL_RUST_LIB_PATH})
+#     message(FATAL_ERROR
+#       "MULL_RUST_LIB_PATH variable should be set to a valid \
+#       existing path in .mull.rust.cmake")
+#   endif()
 
-  foreach(library ${MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES})
-    IF(NOT EXISTS "${library}")
-      message(FATAL_ERROR "Mull.Rust> path declared in \
-        MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES does not exist: \
-        ${library}")
-    endif()
-  endforeach()
+#   foreach(library ${MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES})
+#     IF(NOT EXISTS "${library}")
+#       message(FATAL_ERROR "Mull.Rust> path declared in \
+#         MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES does not exist: \
+#         ${library}")
+#     endif()
+#   endforeach()
 
-  set(mull_additional_libraries
-    ${mull_additional_libraries}
-    ${MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES})
+#   set(mull_additional_libraries
+#     ${mull_additional_libraries}
+#     ${MULL_DEPENDENCY_RUST_ADDITIONAL_LIBRARIES})
 
-  set(mull_rpath ${mull_rpath} ${MULL_RUST_LIB_PATH})
-  set(mull_link_flags ${mull_link_flags} -L${MULL_RUST_LIB_PATH})
-endif()
+#   set(mull_rpath ${mull_rpath} ${MULL_RUST_LIB_PATH})
+#   set(mull_link_flags ${mull_link_flags} -L${MULL_RUST_LIB_PATH})
+# endif()
 
 # Globbing is not recommended by CMake so maybe consider listing headers
 # explicitly in include/CMakeLists.txt file. However LLVM goes find(GLOB) under
@@ -164,10 +164,27 @@ add_library(mull
   $<TARGET_OBJECTS:LLVMCompatibility>
 )
 
+
+  # "asmparser"
+  # "orcjit"
+  # "support"
+  # "x86"
+  # "option"
+
 set_source_files_properties(${mull_header_dirs} PROPERTIES HEADER_FILE_ONLY ON)
 include_directories(${mull_header_dirs})
 
-target_link_libraries(mull ${mull_additional_libraries})
+target_link_libraries(mull
+  LLVMAsmParser
+  LLVMOrcJIT
+  LLVMSupport
+  LLVMOption
+  LLVMX86CodeGen
+  LLVMX86AsmParser
+  libclang
+  clangTooling
+  sqlite3
+)
 
 ## Once we have mull target added, we can start querying and patching it.
 # rpath
@@ -183,7 +200,7 @@ endif()
 set(mull_compileflags ${default_compile_flags} ${LLVM_CXX_FLAGS})
 set_target_properties(mull
   PROPERTIES COMPILE_FLAGS
-  "${mull_compileflags}"
+  "${MULL_CXX_FLAGS} ${mull_compileflags}"
 )
 
 # Link flags

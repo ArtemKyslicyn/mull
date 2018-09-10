@@ -21,7 +21,7 @@ endif()
 set(mulldriver_compileflags ${default_compile_flags} ${LLVM_CXX_FLAGS})
 set_target_properties(mull-driver
   PROPERTIES COMPILE_FLAGS
-  "${mulldriver_compileflags}"
+  "${MULL_CXX_FLAGS} ${mulldriver_compileflags}"
 )
 
 # Link flags
